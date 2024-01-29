@@ -1,11 +1,45 @@
-const { MessageEmbed } = require("discord.js");
+const { MessageEmbed, ApplicationCommandOptionType } = require("discord.js");
+
+// TODO: add option templates to each command
 
 module.exports = {
     data: {
         name: "terminate",
         description: "Terminate a user.",
+        options: [
+            {
+                name: "userToTerminate",
+                description: "The user's ID to terminate.",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            },
+            {
+                name: "reasonForTermination",
+                description: "The reason for user termination.",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            },
+            {
+                name: "appealable",
+                description: "Can the ban be revoked?",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            },
+            {
+                name: "aprovedBy",
+                description: "Who is it approved by?",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            },
+            {
+                name: "proof",
+                description: "Image ID",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
     },
-    async execute(message, userToBan, options) {
+    async execute(message, userToBan, args) {
         const embed = new MessageEmbed()
         .setTitle("User")
         .setDesciption(`${userToBan.user.id}`)

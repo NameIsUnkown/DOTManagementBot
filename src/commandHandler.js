@@ -9,7 +9,7 @@ module.exports = (client, discord, commands) => {
         const filePath = path.join(commandsPath, file);
         const command = require(filePath);
         if ("data" in command && "execute" in command) {
-            commands.push(command); // Push the command object into the array
+            commands.push(command);
             console.log(`Command ${command.data.name} loaded from ${filePath}`);
         } else {
             console.log(`[WARNING] The command at ${filePath} is missing a 'data' or 'execute' property.`);
