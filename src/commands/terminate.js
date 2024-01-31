@@ -1,6 +1,4 @@
-const { MessageEmbed, ApplicationCommandOptionType } = require("discord.js");
-
-// TODO: add option templates to each command
+const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 
 module.exports = {
     data: {
@@ -8,13 +6,13 @@ module.exports = {
         description: "Terminate a user.",
         options: [
             {
-                name: "userToTerminate",
+                name: "usertoterminate",
                 description: "The user's ID to terminate.",
                 type: ApplicationCommandOptionType.String,
                 required: true
             },
             {
-                name: "reasonForTermination",
+                name: "reasonfortermination",
                 description: "The reason for user termination.",
                 type: ApplicationCommandOptionType.String,
                 required: true
@@ -26,7 +24,7 @@ module.exports = {
                 required: true
             },
             {
-                name: "aprovedBy",
+                name: "aprovedby",
                 description: "Who is it approved by?",
                 type: ApplicationCommandOptionType.String,
                 required: true
@@ -39,21 +37,18 @@ module.exports = {
             }
         ]
     },
-    async execute(message, userToBan, args) {
-        const embed = new MessageEmbed()
+    async execute(message, targetUser, targetUserId, args) {
+        const embed = new EmbedBuilder()
         .setTitle("User")
-        .setDesciption(`${userToBan.user.id}`)
+        .setDescription(`${targetUser}`)
         .setColor('#3498db')
 
-        const embedMessage = message.channel.send({embeds: [embed]});
+        const embedMessage = await message.channel.send({embeds: [embed]});
 
-        try {
-            const memberToBan = await message.guild.members.fetch(userToBan);
-            await memberToBan.ban({reason: options.join(" ")});
-            embedMessage.edit({content: "User banned successfully", embeds: [embed.setColor("#00ff00")]})
-        } catch(error) {
-            embedMessage.edit({ content: 'Failed to ban user', embeds: [embed.setColor('#ff0000')] });
-        }
+        const memberToBan = await message.guild.members.fetch(targetUser);
+        console.log("member to ban:", memberToBan)
+        await memberToBan.ban({reason: "noob"});
+        embedMessage.edit({content: "User banned successfully", embeds: [embed.setColor("#00ff00")]})
     }
 } 
 

@@ -9,7 +9,10 @@ const {
 const commandHandler = require("./commandHandler");
 const token = process.env.TOKEN;
 
-// fix applicationcommandoptiontype
+// refactor the code & fix terminate.js
+
+const clientID = process.env['CLIENT_ID'];
+const guildID = process.env['GUILD_ID'];
 
 const client = new Client({
   intents: [
@@ -27,23 +30,27 @@ client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on("messageCreate", (message) => {
-  if (!message.content.startsWith(prefix)) return;
+client.on("interactionCreate", (interaction) => {
+  console.log("Interaction received:", interaction.commandName);
 
-  const args = message.content.slice(prefix.length).trim().split(/ +/);
-  const commandName = args.shift().toLowerCase();
+  if (!interaction.isCommand()) return;
+
+  const args = interaction.options.data.map((option) => option.value);
+  const commandName = interaction.commandName;
 
   const command = commands.find((cmd) => cmd.data.name === commandName);
 
   if (!command) return;
 
   try {
-    const userToBan = message.mentions.users.first();
-    command.execute(message, userToBan, args);
+    const targetUser = interaction.options.get("usertoterminate");
+    const targetUserId = interaction.options.get("usertoterminate").value;
+    command.execute(interaction, targetUser, targetUserId, args);
   } catch (error) {
     console.error(error);
   }
 });
+
 
 const rest = new REST().setToken(token);
 
@@ -61,12 +68,11 @@ const rest = new REST().setToken(token);
       };
 
       if (command.data.options) {
-        console.log(command.data.options)
         baseCommand.options = command.data.options.map((option) => ({
           name: option.name,
           description: option.description,
           type: ApplicationCommandOptionType.String,
-          required: option.required || false,
+          required: option.required,
         }));
       }
 
@@ -75,8 +81,8 @@ const rest = new REST().setToken(token);
 
     await rest.put(
       Routes.applicationGuildCommands(
-        process.env.CLIENT_ID,
-        process.env.GUILD_ID
+        clientID,
+        guildID
       ),
       { body: formattedCommands }
     );
