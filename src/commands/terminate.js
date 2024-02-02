@@ -1,8 +1,7 @@
-const { Client, Interaction, EmbedBuilder, ApplicationCommandOptionType, PermissionFlagsBits, Embed } = require("discord.js");
+const { Client, Interaction, EmbedBuilder, ApplicationCommandOptionType, PermissionFlagsBits, } = require("discord.js");
 
 module.exports = {
     /** 
-     * 
      * @param {Client} client
      * @param {Interaction} interaction
     */
@@ -12,7 +11,7 @@ module.exports = {
         options: [
             {
                 name: "user",
-                description: "The user's ID to terminate.",
+                description: "Ping (@) a user to terminate.",
                 type: ApplicationCommandOptionType.Mentionable,
                 required: true
             },
@@ -39,22 +38,17 @@ module.exports = {
         botPermissions: [PermissionFlagsBits.BanMembers],
     },
     async execute(client, interaction) {
-        const targetUserId = interaction.options.get('user').value.replace(/[<@!>]/g, '');
-        const reason = interaction.options.get('reason').value || "No reason provided.";
-
+        const targetUserId = interaction.options.get("user").value.replace(/[<@!>]/g, '');
+        const reason = interaction.options.get("reason").value || "No reason provided.";
+        
         await interaction.deferReply();
-
+        
         const targetUser = await interaction.guild.members.fetch(targetUserId);
 
         if (!targetUser) {
             await interaction.editReply("That user does not exist in the server.");
             return;
         }
-
-        // if (targetUser.id === interaction.guild.ownerId) {
-        //     await interaction.editReply("```Cannot ban the server owner.```");
-        //     return;
-        // }
 
         const targetUserRolePosition = targetUser.roles.highest.position;
         const requestUserRolePosition = interaction.member.roles.highest.position;
@@ -84,7 +78,7 @@ module.exports = {
 
         try {
             await targetUser.ban({reason});
-            await interaction.editReply({content: `<@${targetUser.id}>`, embeds: [bannedUserEmbed]});
+            await interaction.editReply({content: `<@${targetUserId}>`, embeds: [bannedUserEmbed]});
         } catch(error) {
             console.log("Error banning the user", error);
         }

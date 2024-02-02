@@ -40,7 +40,7 @@ client.on("interactionCreate", (interaction) => {
   if (!command) return;
 
   try {
-    command.execute(client, interaction, );
+    command.execute(client, interaction,);
   } catch (error) {
     console.error(error);
   }
@@ -75,7 +75,7 @@ const rest = new REST().setToken(process.env.TOKEN);
     });
 
     await rest.put(
-      Routes.applicationGuildCommands( clientID, guildID ), { body: formattedCommands });
+      Routes.applicationGuildCommands(clientID, guildID), { body: formattedCommands });
     console.log(`Successfully reloaded ${commands.length} (/) command(s).`);
   } catch (error) {
     console.error(error);
