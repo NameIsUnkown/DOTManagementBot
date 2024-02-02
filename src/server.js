@@ -1,13 +1,6 @@
 require("dotenv").config();
-const {
-  REST,
-  Client,
-  GatewayIntentBits,
-  Routes,
-  ApplicationCommandOptionType,
-} = require("discord.js");
+const { REST, Client, GatewayIntentBits, Routes, ApplicationCommandOptionType, } = require("discord.js");
 const commandHandler = require("./commandHandler");
-const token = process.env.TOKEN;
 
 // refactor the code & fix terminate.js
 
@@ -21,6 +14,7 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
   ],
 });
+
 const commands = [];
 commandHandler(client, null, commands);
 
@@ -31,11 +25,14 @@ client.on("ready", () => {
 });
 
 client.on("interactionCreate", (interaction) => {
-  console.log("Interaction received:", interaction.commandName);
-
   if (!interaction.isCommand()) return;
 
-  const args = interaction.options.data.map((option) => option.value);
+  const args = interaction.options.data.map((option) => {
+    if (option.type === ApplicationCommandOptionType.Mentionable) {
+      return option.value.id;
+    }
+    return option.value;
+  });
   const commandName = interaction.commandName;
 
   const command = commands.find((cmd) => cmd.data.name === commandName);
@@ -43,16 +40,14 @@ client.on("interactionCreate", (interaction) => {
   if (!command) return;
 
   try {
-    const targetUser = interaction.options.get("usertoterminate");
-    const targetUserId = interaction.options.get("usertoterminate").value;
-    command.execute(interaction, targetUser, targetUserId, args);
+    command.execute(client, interaction, );
   } catch (error) {
     console.error(error);
   }
 });
 
 
-const rest = new REST().setToken(token);
+const rest = new REST().setToken(process.env.TOKEN);
 
 (async () => {
   try {
@@ -80,16 +75,11 @@ const rest = new REST().setToken(token);
     });
 
     await rest.put(
-      Routes.applicationGuildCommands(
-        clientID,
-        guildID
-      ),
-      { body: formattedCommands }
-    );
-    console.log(`Successfully reloaded (/) commands.`);
+      Routes.applicationGuildCommands( clientID, guildID ), { body: formattedCommands });
+    console.log(`Successfully reloaded ${commands.length} (/) command(s).`);
   } catch (error) {
     console.error(error);
   }
 })();
 
-client.login(token);
+client.login(process.env.TOKEN);
