@@ -1,4 +1,4 @@
-const { Client, Interaction, EmbedBuilder, ApplicationCommandOptionType, PermissionFlagsBits, } = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType, PermissionFlagsBits, } = require("discord.js");
 
 module.exports = {
     /** 
@@ -65,7 +65,7 @@ module.exports = {
         }
 
         const bannedUserEmbed = new EmbedBuilder()
-        .setColor(0x5aaf2e)
+        .setColor(0x140524)
         .setTitle("DOT Termination")
         .addFields(
             {name: "Username", value: `${targetUser}`},
