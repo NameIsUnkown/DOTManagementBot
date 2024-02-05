@@ -18,19 +18,19 @@ module.exports = {
       {
         name: "reason",
         description: "The reason for user termination.",
-        type: ApplicationCommandOptionType.Mentionable,
+        type: ApplicationCommandOptionType.String,
         required: true,
       },
       {
         name: "appealable",
         description: "Can the ban be revoked?",
-        type: ApplicationCommandOptionType.Mentionable,
+        type: ApplicationCommandOptionType.Boolean,
         required: true,
       },
       {
         name: "proof",
         description: "Image ID",
-        type: ApplicationCommandOptionType.Mentionable,
+        type: ApplicationCommandOptionType.Attachment,
         required: true,
       },
     ],
@@ -46,7 +46,7 @@ module.exports = {
     const targetChannelId = "1204133154860834816";
     const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
 
-    if (!targetUser) {
+    if (!targetMember) {
       await interaction.editReply("```That user does not exist in the server.```");
       return;
     }
@@ -75,7 +75,7 @@ module.exports = {
         { name: "Approved By", value: `<@${interaction.user.id}>` },
         { name: "Proof", value: "Image proof" }
       )
-      .setImage(interaction.options.get("proof").value);
+      .setImage(interaction.options.get("proof").value.url);
 
     try {
       await targetMember.ban({ reason });
