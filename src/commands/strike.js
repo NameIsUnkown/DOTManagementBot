@@ -27,12 +27,13 @@ module.exports = {
     ],
   },
   async execute(client, interaction) {
-    const targetUserId = interaction.options.get("user").value.replace(/[<@!>]/g, "");
+    const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, "");
     const reason = interaction.options.get("reason").value || "No reason provided.";
 
-    await interaction.deferReply();
+    const targetMember = await interaction.guild.members.cache.get(targetMemberId);
 
-    const targetUser = await interaction.guild.members.cache.get(targetUserId);
+    const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
 
     const strike1 = "1203050312986927187";
     const strike2 = "1203050353453699162";
@@ -57,34 +58,34 @@ module.exports = {
       }
     };
 
-    if (!targetUser.roles.cache.has(strike1)) {
+    if (!targetMember.roles.cache.has(strike1)) {
       const role1 = await roleToAssign(interaction.guild.id, strike1);
       if (role1) {
         assignedRole = role1;
-        await targetUser.roles.add(role1);
+        await targetMember.roles.add(role1);
       } else {
         console.log("Error fetching role1.");
       }
     } else if (
-      !targetUser.roles.cache.has(strike2) &&
-      targetUser.roles.cache.has(strike1)
+      !targetMember.roles.cache.has(strike2) &&
+      targetMember.roles.cache.has(strike1)
     ) {
       const role2 = await roleToAssign(interaction.guild.id, strike2);
       if (role2) {
         assignedRole = role2;
-        await targetUser.roles.add(role2);
+        await targetMember.roles.add(role2);
       } else {
         console.log("Error fetching role2.");
       }
     } else if (
-      !targetUser.roles.cache.has(strike3) &&
-      targetUser.roles.cache.has(strike2) &&
-      targetUser.roles.cache.has(strike1)
+      !targetMember.roles.cache.has(strike3) &&
+      targetMember.roles.cache.has(strike2) &&
+      targetMember.roles.cache.has(strike1)
     ) {
       const role3 = await roleToAssign(interaction.guild.id, strike3);
       if (role3) {
         assignedRole = role3;
-        await targetUser.roles.add(role3);
+        await targetMember.roles.add(role3);
       } else {
         console.log("Error fetching role3.");
       }
@@ -96,18 +97,17 @@ module.exports = {
       .setColor(0x140524)
       .setTitle("DOT Strike")
       .addFields(
-        { name: "Username", value: `${targetUser}` },
+        { name: "Username", value: `${targetMember}` },
         { name: "Strike", value: `${assignedRole}` },
         { name: "Reason", value: `${reason}` },
-        {name: "Appealable?",value: `${interaction.options.get("isappealable").value}`,},
+        { name: "Appealable?",value: `${interaction.options.get("isappealable").value}`,},
         { name: "Approved by", value: `<@${interaction.user.id}>` }
       );
 
     try {
-      await interaction.editReply({
-        content: `<@${targetUserId}>`,
-        embeds: [strikeEmbed],
-      });
+      if (targetChannel) {
+        targetChannel.send({content: `<@${targetMemberId}>`, embeds: [strikeEmbed]});
+      }
     } catch (error) {
       console.error("An error occured: ", error);
     }

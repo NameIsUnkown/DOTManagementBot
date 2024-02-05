@@ -1,87 +1,90 @@
 const { EmbedBuilder, ApplicationCommandOptionType, PermissionFlagsBits, } = require("discord.js");
 
+/*
+Work more on the proof part - where it should display an image
+*/
+
 module.exports = {
-    /** 
-     * @param {Client} client
-     * @param {Interaction} interaction
-    */
-    data: {
-        name: "terminate",
-        description: "Terminate a user.",
-        options: [
-            {
-                name: "user",
-                description: "Ping (@) a user to terminate.",
-                type: ApplicationCommandOptionType.Mentionable,
-                required: true
-            },
-            {
-                name: "reason",
-                description: "The reason for user termination.",
-                type: ApplicationCommandOptionType.Mentionable,
-                required: true
-            },
-            {
-                name: "appealable",
-                description: "Can the ban be revoked?",
-                type: ApplicationCommandOptionType.Mentionable,
-                required: true
-            },
-            {
-                name: "proof",
-                description: "Image ID",
-                type: ApplicationCommandOptionType.Mentionable,
-                required: true
-            }
-        ],
-        permissionsRequired: [PermissionFlagsBits.BanMembers],
-        botPermissions: [PermissionFlagsBits.BanMembers],
-    },
-    async execute(client, interaction) {
-        const targetUserId = interaction.options.get("user").value.replace(/[<@!>]/g, '');
-        const reason = interaction.options.get("reason").value || "No reason provided.";
-        
-        await interaction.deferReply();
-        
-        const targetUser = await interaction.guild.members.fetch(targetUserId);
+  data: {
+    name: "terminate",
+    description: "Terminate a user.",
+    options: [
+      {
+        name: "user",
+        description: "Ping (@) a user to terminate.",
+        type: ApplicationCommandOptionType.Mentionable,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "The reason for user termination.",
+        type: ApplicationCommandOptionType.Mentionable,
+        required: true,
+      },
+      {
+        name: "appealable",
+        description: "Can the ban be revoked?",
+        type: ApplicationCommandOptionType.Mentionable,
+        required: true,
+      },
+      {
+        name: "proof",
+        description: "Image ID",
+        type: ApplicationCommandOptionType.Mentionable,
+        required: true,
+      },
+    ],
+    permissionsRequired: [PermissionFlagsBits.BanMembers],
+    botPermissions: [PermissionFlagsBits.BanMembers],
+  },
+  async execute(client, interaction) {
+    const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, "");
+    const reason = interaction.options.get("reason").value || "No reason provided.";
 
-        if (!targetUser) {
-            await interaction.editReply("That user does not exist in the server.");
-            return;
-        }
+    const targetMember = await interaction.guild.members.fetch(targetMemberId);
 
-        const targetUserRolePosition = targetUser.roles.highest.position;
-        const requestUserRolePosition = interaction.member.roles.highest.position;
-        const botRolePosition = interaction.guild.members.me.roles.highest.position;
+    const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
 
-        if (targetUserRolePosition >= requestUserRolePosition) {
-            await interaction.editReply("```You can't ban that user because they have the same/higher role than you.```");
-            return;
-        }
-
-        if (targetUserRolePosition >= botRolePosition) {
-            await interaction.editReply("```I cant ban that user because they have the same/higher role than me.```");
-            return;
-        }
-
-        const bannedUserEmbed = new EmbedBuilder()
-        .setColor(0x140524)
-        .setTitle("DOT Termination")
-        .addFields(
-            {name: "Username", value: `${targetUser}`},
-            {name: "Reason", value: `${reason}`},
-            {name: "Appealable?", value: `${interaction.options.get("appealable").value}`},
-            {name: "Approved By", value: `<@${interaction.user.id}>`},
-            {name: "Proof", value: "Image proof"},
-        )
-        .setImage(interaction.options.get("proof").value)
-
-        try {
-            await targetUser.ban({reason});
-            await interaction.editReply({content: `<@${targetUserId}>`, embeds: [bannedUserEmbed]});
-        } catch(error) {
-            console.log("Error banning the user", error);
-        }
+    if (!targetUser) {
+      await interaction.editReply("```That user does not exist in the server.```");
+      return;
     }
-} 
+
+    const targetUserRolePosition = targetMember.roles.highest.position;
+    const requestUserRolePosition = interaction.member.roles.highest.position;
+    const botRolePosition = interaction.guild.members.me.roles.highest.position;
+
+    if (targetUserRolePosition >= requestUserRolePosition) {
+      await interaction.editReply("```You can't ban that user because they have the same/higher role than you.```");
+      return;
+    }
+
+    if (targetUserRolePosition >= botRolePosition) {
+      await interaction.editReply("```I cant ban that user because they have the same/higher role than me.```");
+      return;
+    }
+
+    const bannedUserEmbed = new EmbedBuilder()
+      .setColor(0x140524)
+      .setTitle("DOT Termination")
+      .addFields(
+        { name: "Username", value: `${targetMember}` },
+        { name: "Reason", value: `${reason}` },
+        { name: "Appealable?", value: `${interaction.options.get("appealable").value}`, },
+        { name: "Approved By", value: `<@${interaction.user.id}>` },
+        { name: "Proof", value: "Image proof" }
+      )
+      .setImage(interaction.options.get("proof").value);
+
+    try {
+      await targetMember.ban({ reason });
+      if (targetChannel) {
+        targetChannel.send({ content: `<@${targetMemberId}>`, embeds: [bannedUserEmbed], });
+      }
+    } catch (error) {
+      console.log("Error banning the user", error);
+    }
+  },
+}; 
 

@@ -1,7 +1,11 @@
 require("dotenv").config();
 const { ApplicationCommandOptionType, EmbedBuilder } = require("discord.js");
 
-module.exports = {
+/* 
+Make sure that the user cannot enter a role higher than the new role
+*/
+
+module.exports = { 
   data: {
     name: "demotion",
     description: "Demote a user.",
@@ -61,9 +65,10 @@ module.exports = {
     const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, '');
     const promotionReason = interaction.options.get("reason")?.value || "No reason provided.";
 
-    await interaction.deferReply();
-
     const targetMember = await interaction.guild.members.cache.get(targetMemberId);
+
+    const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
 
     const oldRoles = [
       interaction.options.get("oldrole1").value.replace(/[<@!>]/g, '').replace(/&/g, ''),
@@ -81,36 +86,36 @@ module.exports = {
 
     const addedNewRoles = [];
 
-	const fetchRoles = (roleIds) => {
-		return roleIds.map((roleId) => interaction.guild.roles.cache.get(roleId));
+	  const fetchRoles = (roleIds) => {
+		  return roleIds.map((roleId) => interaction.guild.roles.cache.get(roleId));
 	  };
   
-	  const removeRoles = async (member, roles) => {
-		for (const role of roles) {
-		  if (role && member.roles.cache.has(role.id)) {
-			removedOldRoles.push(role);
-			await member.roles.remove(role);
-		  }
-		}
-	  };
+    const removeRoles = async (member, roles) => {
+	    for (const role of roles) {
+	      if (role && member.roles.cache.has(role.id)) {
+		    removedOldRoles.push(role);
+		    await member.roles.remove(role);
+	      }
+	    }
+    };
   
 	  const addRoles = async (member, roles) => {
-		for (const role of roles) {
-		  if (role && !member.roles.cache.has(role.id)) {
-			addedNewRoles.push(role);
-			await member.roles.add(role);
+		  for (const role of roles) {
+		    if (role && !member.roles.cache.has(role.id)) {
+			  addedNewRoles.push(role);
+			  await member.roles.add(role);
+		    }
 		  }
-		}
 	  };
   
-	  const oldRolesToBeRemoved = fetchRoles(oldRoles);
-	  await removeRoles(targetMember, oldRolesToBeRemoved);
+    const oldRolesToBeRemoved = fetchRoles(oldRoles);
+    await removeRoles(targetMember, oldRolesToBeRemoved);
   
-	  const newRolesToBeAdded = fetchRoles(newRoles);
-	  await addRoles(targetMember, newRolesToBeAdded);
+    const newRolesToBeAdded = fetchRoles(newRoles);
+    await addRoles(targetMember, newRolesToBeAdded);
 
-	const removedRolesNames = removedOldRoles.map((role) => `${role}`).join(", ");
-	const addedRolesNames = addedNewRoles.map((role) => `${role}`).join(", ");
+	  const removedRolesNames = removedOldRoles.map((role) => `${role}`).join(", ");
+	  const addedRolesNames = addedNewRoles.map((role) => `${role}`).join(", ");
 
     const demotionEmbed = new EmbedBuilder()
     .setColor(0x140524)
@@ -118,13 +123,15 @@ module.exports = {
     .addFields(
       { name: "Username", value: `${targetMember}` },
       { name: "Promotion reason", value: `${promotionReason}`},
-	  { name: "Old rank(s)", value: `${removedRolesNames}`},
+	    { name: "Old rank(s)", value: `${removedRolesNames}`},
       { name: "New rank(s)", value: `${addedRolesNames}`},
       { name: "Approved by", value: `<@${interaction.user.id}>`}
     );
 
     try {
-      await interaction.editReply({content: `<@${targetMemberId}>`, embeds: [demotionEmbed]});
+      if (targetChannel) {
+        targetChannel.send({content: `<@${targetMemberId}>`, embeds: [demotionEmbed]});
+      }
     } catch(error) {
       console.error(`An error occured: ${error.message}`);
     }

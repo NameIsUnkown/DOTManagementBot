@@ -1,9 +1,6 @@
 require("dotenv").config();
 const { ApplicationCommandOptionType, EmbedBuilder, } = require("discord.js");
 
-// Add more checks
-// Do more tests
-
 module.exports = {
   data: {
     name: "promotion",
@@ -45,9 +42,10 @@ module.exports = {
     const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, '');
     const promotionReason = interaction.options.get("reason")?.value || "No reason provided.";
 
-    await interaction.deferReply();
-
     const targetMember = await interaction.guild.members.cache.get(targetMemberId);
+
+    const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
 
     const roles = [
       interaction.options.get("newrole1").value.replace(/[<@!>]/g, '').replace(/&/g, ''),
@@ -123,7 +121,9 @@ module.exports = {
     );
 
     try {
-      await interaction.editReply({content: `<@${targetMemberId}>`, embeds: [promotionEmbed]});
+      if (targetChannel) {
+        targetChannel.send({content: `<@${targetMemberId}>`, embeds: [promotionEmbed]});
+      }
     } catch(error) {
       console.error(`An error occured: ${error.message}`);
     }
