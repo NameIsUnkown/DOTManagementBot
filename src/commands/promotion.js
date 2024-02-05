@@ -77,11 +77,9 @@ module.exports = {
     if (roles[0]) {
       if (!targetMember.roles.cache.has(roles[0])) {
         const role = await roleToAssign(interaction.guild.id, roles[0]);
-        console.log(roles[0])
         if (role) {
           assignedRoles.push(role);
           await targetMember.roles.add(role.id);
-          console.log("Successfully added");
         } else {
           console.error(`Failed to add role 1 ${role} to user ${targetMember}`);
         }
@@ -120,7 +118,7 @@ module.exports = {
     .addFields(
       { name: "Username", value: `${targetMember}` },
       { name: "Promotion reason", value: `${promotionReason}`},
-      { name: "New roles", value: `${assignedRolesNames}\n`},
+      { name: "New rank(s)", value: `${assignedRolesNames}\n`},
       { name: "Approved by", value: `<@${interaction.user.id}>`}
     );
 
