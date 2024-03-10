@@ -38,13 +38,18 @@ module.exports = {
     botPermissions: [PermissionFlagsBits.BanMembers],
   },
   async execute(client, interaction) {
+    if (!interaction.member.roles.cache.some((role) => role.name === "DOT | HR")) {
+      await interaction.reply({content: "You don't have permission to use this command.", ephemeral: true});
+      return;
+    }
+    
     const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, "");
     const reason = interaction.options.get("reason").value || "No reason provided.";
 
     const targetMember = await interaction.guild.members.fetch(targetMemberId);
 
-    const targetChannelId = "1204133154860834816";
-    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
+    // const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(process.env.TERMINATIONS_CHANNEL_ID);
 
     if (!targetMember) {
       await interaction.editReply("```That user does not exist in the server.```");
@@ -80,10 +85,11 @@ module.exports = {
     try {
       await targetMember.ban({ reason });
       if (targetChannel) {
-        targetChannel.send({ content: `<@${targetMemberId}>`, embeds: [bannedUserEmbed], });
+        await targetChannel.send({ content: `<@${targetMemberId}>`, embeds: [bannedUserEmbed], });
       }
+      await interaction.reply({content: `Successfully demoted`, ephemeral: true});
     } catch (error) {
-      console.log("Error banning the user", error);
+      await interaction.reply({content: `An error occured while sending the embed.`, ephemeral: true});
     }
   },
 }; 

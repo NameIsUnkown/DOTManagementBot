@@ -19,7 +19,7 @@ module.exports = {
         required: true,
       },
       {
-        name: "isappealable",
+        name: "appealable",
         description: "Is the ban on this user revokable?",
         type: ApplicationCommandOptionType.Mentionable,
         required: true,
@@ -27,17 +27,22 @@ module.exports = {
     ],
   },
   async execute(client, interaction) {
+    if (!interaction.member.roles.cache.some((role) => role.name === "DOT | HR")) {
+      await interaction.reply({content: "You don't have permission to use this command.", ephemeral: true});
+      return;
+    }
+
     const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, "");
     const reason = interaction.options.get("reason").value || "No reason provided.";
 
     const targetMember = await interaction.guild.members.cache.get(targetMemberId);
 
-    const targetChannelId = "1204133154860834816";
-    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
+    // const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(process.env.STRIKES_CHANNEL_ID);
 
-    const strike1 = "1203050312986927187";
-    const strike2 = "1203050353453699162";
-    const strike3 = "1203050378539700224"; // replace these with the actual role IDs
+    // const strike1 = "1203050312986927187";
+    // const strike2 = "1203050353453699162";
+    // const strike3 = "1203050378539700224";
 
     let assignedRole;
 
@@ -45,52 +50,42 @@ module.exports = {
       try {
         const guild = client.guilds.cache.get(guildId);
         if (!guild) {
-          console.error(`Guild with ID ${guildId} not found.`);
+          await interaction.reply(`Guild with ID ${guildId} not found.`);
         }
         const role = await guild.roles.fetch(roleId);
         console.log("Role: ", role);
         return role;
       } catch (error) {
-        console.error(
-          `Error fetching role with ID ${roleId}: ${error.message}`
-        );
+        console.error(`Error fetching role with ID ${roleId}: ${error.message}`);
         return null;
       }
     };
 
-    if (!targetMember.roles.cache.has(strike1)) {
-      const role1 = await roleToAssign(interaction.guild.id, strike1);
-      if (role1) {
-        assignedRole = role1;
+    if (!targetMember.roles.cache.has(process.env.STRIKE_1)) {
+      const role1 = await roleToAssign(interaction.guild.id, process.env.STRIKE_1);
+      if (role1) {assignedRole = role1;
         await targetMember.roles.add(role1);
       } else {
-        console.log("Error fetching role1.");
+        console.log(`Error fetching ${role1}`);
       }
-    } else if (
-      !targetMember.roles.cache.has(strike2) &&
-      targetMember.roles.cache.has(strike1)
-    ) {
-      const role2 = await roleToAssign(interaction.guild.id, strike2);
+    } else if (!targetMember.roles.cache.has(process.env.STRIKE_2) && targetMember.roles.cache.has(process.env.STRIKE_1)) {
+      const role2 = await roleToAssign(interaction.guild.id, process.env.STRIKE_2);
       if (role2) {
         assignedRole = role2;
         await targetMember.roles.add(role2);
       } else {
-        console.log("Error fetching role2.");
+        console.log(`Error fetching ${role2}`);
       }
-    } else if (
-      !targetMember.roles.cache.has(strike3) &&
-      targetMember.roles.cache.has(strike2) &&
-      targetMember.roles.cache.has(strike1)
-    ) {
-      const role3 = await roleToAssign(interaction.guild.id, strike3);
+    } else if (!targetMember.roles.cache.has(process.env.STRIKE_3) && targetMember.roles.cache.has(process.env.STRIKE_2) && targetMember.roles.cache.has(process.env.STRIKE_1)) {
+      const role3 = await roleToAssign(interaction.guild.id, process.env.STRIKE_3);
       if (role3) {
         assignedRole = role3;
         await targetMember.roles.add(role3);
       } else {
-        console.log("Error fetching role3.");
+        console.log(`Error fetching ${role3}`);
       }
     } else {
-      console.log("Error assigning the role to the user.");
+      console.error("Failed to assign role to user.")
     }
 
     const strikeEmbed = new EmbedBuilder()
@@ -100,7 +95,7 @@ module.exports = {
         { name: "Username", value: `${targetMember}` },
         { name: "Strike", value: `${assignedRole}` },
         { name: "Reason", value: `${reason}` },
-        { name: "Appealable?",value: `${interaction.options.get("isappealable").value}`,},
+        { name: "Appealable?",value: `${interaction.options.get("appealable").value}`,},
         { name: "Approved by", value: `<@${interaction.user.id}>` }
       );
 
@@ -108,8 +103,9 @@ module.exports = {
       if (targetChannel) {
         targetChannel.send({content: `<@${targetMemberId}>`, embeds: [strikeEmbed]});
       }
+      await interaction.reply({content: `Successfully striked ${targetMember}.`, ephemeral: true});
     } catch (error) {
-      console.error("An error occured: ", error);
+      await interaction.reply({content: `An error occured while sending the embed.`, ephemeral: true});
     }
   },
 };

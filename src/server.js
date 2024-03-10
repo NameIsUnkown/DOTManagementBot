@@ -2,8 +2,6 @@ require("dotenv").config();
 const { REST, Client, GatewayIntentBits, Routes, ApplicationCommandOptionType, } = require("discord.js");
 const commandHandler = require("./commandHandler");
 
-// refactor the code & fix terminate.js
-
 const clientID = process.env['CLIENT_ID'];
 const guildID = process.env['GUILD_ID'];
 

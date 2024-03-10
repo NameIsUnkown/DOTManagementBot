@@ -62,13 +62,18 @@ module.exports = {
     ],
   },
   async execute(client, interaction) {
+    if (!interaction.member.roles.cache.some((role) => role.name === "DOT | HR")) {
+      await interaction.reply({content: "You don't have permission to use this command.", ephemeral: true});
+      return;
+    }
+
     const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, '');
     const promotionReason = interaction.options.get("reason")?.value || "No reason provided.";
 
     const targetMember = await interaction.guild.members.cache.get(targetMemberId);
 
-    const targetChannelId = "1204133154860834816";
-    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
+    // const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(process.env.MOVEMENT_CHANNEL_ID);
 
     const oldRoles = [
       interaction.options.get("oldrole1").value.replace(/[<@!>]/g, '').replace(/&/g, ''),
@@ -132,8 +137,9 @@ module.exports = {
       if (targetChannel) {
         targetChannel.send({content: `<@${targetMemberId}>`, embeds: [demotionEmbed]});
       }
+      await interaction.reply({content: `Successfully demoted ${targetMember}.`, ephemeral: true});
     } catch(error) {
-      console.error(`An error occured: ${error.message}`);
+      await interaction.reply({content: `An error occured while sending the embed.`, ephemeral: true});
     }
   },
 };

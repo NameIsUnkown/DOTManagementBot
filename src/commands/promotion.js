@@ -19,19 +19,19 @@ module.exports = {
         required: true,
       },
       {
-        name: "newrole1",
+        name: "newrank1",
         description: "New rank (role) to promote this user to.",
         type: ApplicationCommandOptionType.Mentionable,
         required: true,
       },
       {
-        name: "newrole2",
+        name: "newrank2",
         description: "New rank (role) to promote this user to.",
         type: ApplicationCommandOptionType.Mentionable,
         required: false,
       },
       {
-        name: "newrole3",
+        name: "newrank3",
         description: "New rank (role) to promote this user to.",
         type: ApplicationCommandOptionType.Mentionable,
         required: false,
@@ -39,13 +39,18 @@ module.exports = {
     ],
   },
   async execute(client, interaction) {
+    if (!interaction.member.roles.cache.some((role) => role.name === "DOT | HR")) {
+      await interaction.reply({content: "You don't have permission to use this command.", ephemeral: true});
+      return;
+    }
+    
     const targetMemberId = interaction.options.get("user").value.replace(/[<@!>]/g, '');
     const promotionReason = interaction.options.get("reason")?.value || "No reason provided.";
 
     const targetMember = await interaction.guild.members.cache.get(targetMemberId);
 
-    const targetChannelId = "1204133154860834816";
-    const targetChannel = interaction.guild.channels.cache.get(targetChannelId);
+    // const targetChannelId = "1204133154860834816";
+    const targetChannel = interaction.guild.channels.cache.get(process.env.MOVEMENT_CHANNEL_ID);
 
     const roles = [
       interaction.options.get("newrole1").value.replace(/[<@!>]/g, '').replace(/&/g, ''),
@@ -64,7 +69,11 @@ module.exports = {
         if (!guild) {
           console.error(`Guild with ID ${guildId} not found.`);
         }
-        const role = await guild.roles.fetch(roleId);
+        const role = guild.roles.cache.find(role => role.name.toLowerCase() === roleName.toLowerCase());
+        if (!role) {
+            console.error(`Role with name "${roleName}" not found in guild ${guild.name}.`);
+            return null;
+        }
         return role;
       } catch(error) {
         console.error(`Error fetching role with ID ${roleId}: ${error.message}`);
@@ -124,8 +133,9 @@ module.exports = {
       if (targetChannel) {
         targetChannel.send({content: `<@${targetMemberId}>`, embeds: [promotionEmbed]});
       }
+      await interaction.reply({content: `Successfully sent embed to ${targetChannel}`, ephemeral: true});
     } catch(error) {
-      console.error(`An error occured: ${error.message}`);
+      await interaction.reply({content: `An error occured while sending the embed.`, ephemeral: true});
     }
   }
 }
